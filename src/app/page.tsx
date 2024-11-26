@@ -40,7 +40,6 @@ interface CartProps {
 interface PaymentModalProps {
   amount: number;
   onClose: () => void;
-  onSuccess: () => void;
 }
 
 interface Contact {
@@ -119,11 +118,7 @@ const generateUPIUrl = (
 };
 
 // Payment Modal Component
-const PaymentModal: React.FC<PaymentModalProps> = ({
-  amount,
-  onClose,
-  onSuccess,
-}) => {
+const PaymentModal: React.FC<PaymentModalProps> = ({ amount, onClose }) => {
   const [qrCodeUrl, setQrCodeUrl] = useState<string>("");
   const [error, setError] = useState<string>("");
   const isDesktop = !isMobileDevice();
@@ -135,7 +130,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
         .then((url) => setQrCodeUrl(url))
         .catch(() => setError("Failed to generate QR code"));
     }
-  }, [amount]);
+  }, [amount, isDesktop]);
 
   const handlePayment = async (type: "phonepe" | "gpay" | "default") => {
     try {
@@ -148,7 +143,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
           window.location.href = defaultUrl;
         }
       }, 1500);
-    } catch (err) {
+    } catch (error) {
       setError("Failed to initiate payment. Please try again.");
     }
   };
@@ -182,9 +177,11 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
             </div>
             {qrCodeUrl && (
               <div className="mb-4">
-                <img
+                <Image
                   src={qrCodeUrl}
                   alt="Payment QR Code"
+                  width={200}
+                  height={200}
                   className="mx-auto"
                 />
               </div>
@@ -310,7 +307,6 @@ const Cart: React.FC<CartProps> = ({
         <PaymentModal
           amount={totalAmount}
           onClose={() => setShowPaymentModal(false)}
-          onSuccess={handlePaymentSuccess}
         />
       )}
     </div>
