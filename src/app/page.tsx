@@ -104,7 +104,8 @@ const contacts: Contact[] = [
 // Add this helper function at the top with other helper functions
 const formatCartForWhatsApp = (
   items: CartItem[],
-  customerName: string
+  customerName: string,
+  address: string
 ): string => {
   const itemsList = items
     .map(
@@ -119,10 +120,15 @@ const formatCartForWhatsApp = (
     (sum, item) => sum + item.price * item.quantity,
     0
   );
-
+  // Only include customer details if provided
+  const customerDetails = customerName
+    ? `*Customer Name: ${customerName}*\n\n`
+    : "";
+  const addressDetails = address ? `*Delivery Address: ${address}*\n\n` : "";
   return encodeURIComponent(
     `*New Order For Madhav Food Products*\n\n` +
-      `*Customer Name: ${customerName}*\n\n` +
+      customerDetails +
+      addressDetails +
       `*Order Details:*\n${itemsList}\n\n` +
       `*Total Amount: ₹${total.toFixed(2)}*\n\n` +
       `Please confirm my order.`
@@ -138,14 +144,10 @@ const Cart: React.FC<CartProps> = ({
   totalAmount,
 }) => {
   const [customerName, setCustomerName] = useState("");
-  const [showNameError, setShowNameError] = useState(false);
+  const [address, setAddress] = useState("");
 
   const handleWhatsAppOrder = () => {
-    if (!customerName.trim()) {
-      setShowNameError(true);
-      return;
-    }
-    const message = formatCartForWhatsApp(cartItems, customerName);
+    const message = formatCartForWhatsApp(cartItems, customerName, address);
     const whatsappURL = `https://wa.me/917978692145?text=${message}`; // Update with your number
     window.open(whatsappURL, "_blank");
   };
@@ -204,31 +206,40 @@ const Cart: React.FC<CartProps> = ({
                 <span>Total:</span>
                 <span>₹{totalAmount.toFixed(2)}</span>
               </div>
-              <div className="mb-4">
-                <label
-                  htmlFor="customerName"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
-                  Your Name *
-                </label>
-                <input
-                  type="text"
-                  id="customerName"
-                  value={customerName}
-                  onChange={(e) => {
-                    setCustomerName(e.target.value);
-                    setShowNameError(false);
-                  }}
-                  className={`w-full p-2 border rounded-md ${
-                    showNameError ? "border-red-500" : "border-gray-300"
-                  }`}
-                  placeholder="Enter your name"
-                />
-                {showNameError && (
-                  <p className="text-red-500 text-sm mt-1">
-                    Please enter your name
-                  </p>
-                )}
+              <div className="space-y-4 mb-4">
+                <div>
+                  <label
+                    htmlFor="customerName"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
+                    Your Name (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    id="customerName"
+                    value={customerName}
+                    onChange={(e) => setCustomerName(e.target.value)}
+                    className="w-full p-2 border border-gray-300 rounded-md"
+                    placeholder="Enter your name"
+                  />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="address"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
+                    Delivery Address (Optional)
+                  </label>
+                  <textarea
+                    id="address"
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+                    className="w-full p-2 border border-gray-300 rounded-md"
+                    placeholder="Enter your delivery address"
+                    rows={3}
+                  />
+                </div>
               </div>
 
               <button
