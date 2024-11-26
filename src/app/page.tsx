@@ -11,6 +11,7 @@ import {
   Minus,
   Smartphone,
   Monitor,
+  Youtube,
 } from "lucide-react";
 import QRCode from "qrcode";
 
@@ -120,7 +121,6 @@ const generateUPIUrl = (
 // Payment Modal Component
 const PaymentModal: React.FC<PaymentModalProps> = ({ amount, onClose }) => {
   const [qrCodeUrl, setQrCodeUrl] = useState<string>("");
-  const [error, setError] = useState<string>("");
   const isDesktop = !isMobileDevice();
 
   useEffect(() => {
@@ -128,7 +128,9 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ amount, onClose }) => {
       const upiUrl = generateUPIUrl(amount, "default");
       QRCode.toDataURL(upiUrl)
         .then((url) => setQrCodeUrl(url))
-        .catch(() => setError("Failed to generate QR code"));
+        .catch(() => {
+          console.error("Failed to generate QR code");
+        });
     }
   }, [amount, isDesktop]);
 
@@ -143,8 +145,8 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ amount, onClose }) => {
           window.location.href = defaultUrl;
         }
       }, 1500);
-    } catch (error) {
-      setError("Failed to initiate payment. Please try again.");
+    } catch (err) {
+      console.error("Failed to initiate payment. Please try again.");
     }
   };
 
@@ -162,12 +164,6 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ amount, onClose }) => {
           <p className="text-2xl font-bold">₹{amount.toFixed(2)}</p>
           <p className="text-gray-600">Total Amount</p>
         </div>
-
-        {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-            {error}
-          </div>
-        )}
 
         {isDesktop ? (
           <div className="text-center">
@@ -232,10 +228,10 @@ const Cart: React.FC<CartProps> = ({
 }) => {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
 
-  const handlePaymentSuccess = () => {
-    setShowPaymentModal(false);
-    onClose();
-  };
+  // const handlePaymentSuccess = () => {
+  //   setShowPaymentModal(false);
+  //   onClose();
+  // };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center text-black">
