@@ -11,7 +11,6 @@ import {
   Minus,
   Smartphone,
   Monitor,
-  Youtube,
 } from "lucide-react";
 import QRCode from "qrcode";
 
@@ -163,6 +162,10 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ amount, onClose }) => {
         <div className="text-center mb-4">
           <p className="text-2xl font-bold">₹{amount.toFixed(2)}</p>
           <p className="text-gray-600">Total Amount</p>
+        </div>
+
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+          console.error("Failed to initiate payment. Please try again.");
         </div>
 
         {isDesktop ? (
