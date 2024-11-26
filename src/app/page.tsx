@@ -39,7 +39,7 @@ const products = [
 const contacts = [
   {
     id: 1,
-    number: "8763350504",
+    number: "7978692145",
     isWhatsAppBusiness: true,
     label: "Customer Support",
   },
@@ -52,7 +52,7 @@ const Navbar = () => (
         <div className="flex items-center">
           <div className="flex-shrink-0">
             <span className="text-red-700 text-2xl font-bold">
-              Madhav Foods
+              Madhav Food Products
             </span>
           </div>
         </div>
