@@ -1,6 +1,7 @@
+"use client";
 import React from "react";
-import { ChevronRight, Phone, Mail } from "lucide-react";
 import Image from "next/image";
+import { ChevronRight, Phone, MessageCircle } from "lucide-react";
 
 const products = [
   {
@@ -35,14 +36,23 @@ const products = [
   },
 ];
 
+const contacts = [
+  {
+    id: 1,
+    number: "8763350504",
+    isWhatsAppBusiness: true,
+    label: "Customer Support",
+  },
+];
+
 const Navbar = () => (
   <nav className="sticky top-0 z-50 bg-white shadow-md">
-    <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div className="flex justify-between items-center h-16">
         <div className="flex items-center">
           <div className="flex-shrink-0">
             <span className="text-red-700 text-2xl font-bold">
-              Madhav Food Products
+              Madhav Foods
             </span>
           </div>
         </div>
@@ -118,30 +128,26 @@ const Products = () => (
       <div className="grid grid-cols-1 gap-y-10 gap-x-6 sm:grid-cols-2 lg:grid-cols-3 xl:gap-x-8">
         {products.map((product) => (
           <div key={product.id} className="group relative">
-            <div className="w-full min-h-80 aspect-w-1 aspect-h-1 rounded-md overflow-hidden group-hover:opacity-75">
-              {/* Add position-relative to container */}
-              <div className="relative w-full h-[300px]">
-                {" "}
-                {/* Set explicit height */}
-                <Image
-                  src={product.imagePath}
-                  alt={product.name}
-                  fill
-                  className="object-cover object-center"
-                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                />
-              </div>
+            <div className="relative w-full h-80 bg-gray-200 rounded-md overflow-hidden group-hover:opacity-75">
+              <Image
+                src={product.imagePath}
+                alt={product.name}
+                fill
+                className="object-cover object-center"
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                priority={product.id === 1}
+              />
             </div>
             <div className="mt-4 flex justify-between">
               <div>
-                <h3 className="text-lg text-gray-700">
+                <h3 className="text-sm text-gray-700">
                   <a href="#">
                     <span aria-hidden="true" className="absolute inset-0" />
                     {product.name}
                   </a>
                 </h3>
               </div>
-              <p className="text-lg font-medium text-gray-900">
+              <p className="text-sm font-medium text-gray-900">
                 ₹{product.price}/kg
               </p>
             </div>
@@ -152,28 +158,74 @@ const Products = () => (
   </section>
 );
 
-const Contact = () => (
-  <section id="contact" className="bg-gray-50">
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-      <div className="text-center">
-        <h2 className="text-3xl font-extrabold text-gray-900">Contact Us</h2>
-        <p className="mt-4 text-lg leading-6 text-gray-500">
-          For orders and inquiries, please contact us at the numbers below.
-        </p>
-      </div>
-      <div className="mt-12 flex flex-col items-center justify-center space-y-4">
-        <div className="flex items-center">
-          <Phone className="h-6 w-6 text-red-700 mr-2" />
-          <span className="text-gray-500">+91 9876543210</span>
+const Contact = () => {
+  const handleWhatsAppClick = (number: string, isBusinessAccount: boolean) => {
+    const message = encodeURIComponent(
+      "Hi! I'm interested in knowing more about your products."
+    );
+    const whatsappURL = isBusinessAccount
+      ? `https://wa.me/91${number}?text=${message}`
+      : `https://api.whatsapp.com/send?phone=91${number}&text=${message}`;
+    window.open(whatsappURL, "_blank");
+  };
+  const handlePhoneClick = (number: string) => {
+    window.location.href = `tel:+91${number}`;
+  };
+  return (
+    <section id="contact" className="bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <div className="text-center">
+          <h2 className="text-3xl font-extrabold text-gray-900">Contact Us</h2>
+          <p className="mt-4 text-lg leading-6 text-gray-500">
+            For any queries or orders, feel free to contact us.
+          </p>
         </div>
-        <div className="flex items-center">
-          <Phone className="h-6 w-6 text-red-700 mr-2" />
-          <span className="text-gray-500">+91 9876543211</span>
+        <div className="mt-12 flex flex-col items-center justify-center space-y-6">
+          {contacts.map((contact) => (
+            <div
+              key={contact.id}
+              className="w-full max-w-md bg-white rounded-lg shadow-md p-6"
+            >
+              <div className="text-center mb-4">
+                <h3 className="text-xl font-semibold text-gray-800">
+                  {contact.label}
+                </h3>
+                <p className="text-gray-600">+91 {contact.number}</p>
+              </div>
+
+              <div className="flex flex-col space-y-3">
+                <button
+                  onClick={() => handlePhoneClick(contact.number)}
+                  className="flex items-center justify-center px-4 py-2 border-2 border-red-700 text-red-700 rounded-md hover:bg-red-50 transition-colors duration-200"
+                >
+                  <Phone className="h-5 w-5 mr-2" />
+                  <span>Click to Call</span>
+                </button>
+
+                <button
+                  onClick={() =>
+                    handleWhatsAppClick(
+                      contact.number,
+                      contact.isWhatsAppBusiness
+                    )
+                  }
+                  className="flex items-center justify-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors duration-200"
+                >
+                  <MessageCircle className="h-5 w-5 mr-2" />
+                  <span>Chat on WhatsApp</span>
+                </button>
+              </div>
+
+              <div className="mt-4 text-center text-sm text-gray-500">
+                <p>Timing: 9:00 AM - 10:00 PM IST</p>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
-    </div>
-  </section>
-);
+    </section>
+  );
+};
 
 const Footer = () => (
   <footer className="bg-red-700">
