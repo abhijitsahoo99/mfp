@@ -1,13 +1,64 @@
 "use client";
-import React from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
-import { ChevronRight, Phone, MessageCircle } from "lucide-react";
+import {
+  ChevronRight,
+  Phone,
+  MessageCircle,
+  ShoppingCart,
+  X,
+  Plus,
+  Minus,
+  Smartphone,
+  Monitor,
+} from "lucide-react";
+import QRCode from "qrcode";
 
-const products = [
+// Types
+interface Product {
+  id: number;
+  name: string;
+  price: string;
+  imagePath: string;
+}
+
+interface CartItem {
+  id: string;
+  name: string;
+  price: number;
+  quantity: number;
+}
+
+interface CartProps {
+  cartItems: CartItem[];
+  updateQuantity: (itemId: string, quantity: number) => void;
+  removeFromCart: (itemId: string) => void;
+  onClose: () => void;
+  totalAmount: number;
+}
+
+interface PaymentModalProps {
+  amount: number;
+  onClose: () => void;
+  onSuccess: () => void;
+}
+
+interface Contact {
+  id: number;
+  number: string;
+  isWhatsAppBusiness: boolean;
+  label: string;
+}
+
+// Constants
+const UPI_ID = "8763350504@ybl";
+const MERCHANT_NAME = "Madhav UPADHYAY";
+
+const products: Product[] = [
   {
     id: 1,
     name: "Moong Dal",
-    price: "120",
+    price: "10",
     imagePath: "/assets/dal.jpeg",
   },
   {
@@ -36,7 +87,7 @@ const products = [
   },
 ];
 
-const contacts = [
+const contacts: Contact[] = [
   {
     id: 1,
     number: "7978692145",
@@ -45,7 +96,234 @@ const contacts = [
   },
 ];
 
-const Navbar = () => (
+// Helper functions
+const isMobileDevice = (): boolean => {
+  if (typeof window === "undefined") return false;
+  return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+};
+
+const generateUPIUrl = (
+  amount: number,
+  type: "phonepe" | "gpay" | "default"
+): string => {
+  const encodedName = encodeURIComponent(MERCHANT_NAME);
+  const amountStr = amount.toFixed(2);
+
+  const urls = {
+    phonepe: `phonepe://pay?pa=${UPI_ID}&pn=${encodedName}&am=${amountStr}&cu=INR&mc=5411`,
+    gpay: `tez://upi/pay?pa=${UPI_ID}&pn=${encodedName}&am=${amountStr}&cu=INR`,
+    default: `upi://pay?pa=${UPI_ID}&pn=${encodedName}&am=${amountStr}&cu=INR`,
+  };
+
+  return urls[type];
+};
+
+// Payment Modal Component
+const PaymentModal: React.FC<PaymentModalProps> = ({
+  amount,
+  onClose,
+  onSuccess,
+}) => {
+  const [qrCodeUrl, setQrCodeUrl] = useState<string>("");
+  const [error, setError] = useState<string>("");
+  const isDesktop = !isMobileDevice();
+
+  useEffect(() => {
+    if (isDesktop) {
+      const upiUrl = generateUPIUrl(amount, "default");
+      QRCode.toDataURL(upiUrl)
+        .then((url) => setQrCodeUrl(url))
+        .catch(() => setError("Failed to generate QR code"));
+    }
+  }, [amount]);
+
+  const handlePayment = async (type: "phonepe" | "gpay" | "default") => {
+    try {
+      const paymentUrl = generateUPIUrl(amount, type);
+      window.location.href = paymentUrl;
+
+      setTimeout(() => {
+        if (type !== "default") {
+          const defaultUrl = generateUPIUrl(amount, "default");
+          window.location.href = defaultUrl;
+        }
+      }, 1500);
+    } catch (err) {
+      setError("Failed to initiate payment. Please try again.");
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-[60] flex justify-center items-center">
+      <div className="bg-white p-6 rounded-lg max-w-md w-full">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-bold">Payment</h2>
+          <button onClick={onClose} className="p-2">
+            <X className="h-6 w-6" />
+          </button>
+        </div>
+
+        <div className="text-center mb-4">
+          <p className="text-2xl font-bold">₹{amount.toFixed(2)}</p>
+          <p className="text-gray-600">Total Amount</p>
+        </div>
+
+        {error && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+            {error}
+          </div>
+        )}
+
+        {isDesktop ? (
+          <div className="text-center">
+            <div className="flex items-center justify-center mb-4">
+              <Monitor className="h-6 w-6 mr-2" />
+              <span>Scan with your UPI app</span>
+            </div>
+            {qrCodeUrl && (
+              <div className="mb-4">
+                <img
+                  src={qrCodeUrl}
+                  alt="Payment QR Code"
+                  className="mx-auto"
+                />
+              </div>
+            )}
+            <div className="text-sm text-gray-600">
+              <p>UPI ID: {UPI_ID}</p>
+              <p>Scan the QR code or use the UPI ID in your payment app</p>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            <div className="flex items-center justify-center mb-2">
+              <Smartphone className="h-6 w-6 mr-2" />
+              <span>Pay using your preferred app</span>
+            </div>
+            <button
+              onClick={() => handlePayment("phonepe")}
+              className="w-full py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center justify-center"
+            >
+              Pay with PhonePe
+            </button>
+            <button
+              onClick={() => handlePayment("gpay")}
+              className="w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center justify-center"
+            >
+              Pay with Google Pay
+            </button>
+            <button
+              onClick={() => handlePayment("default")}
+              className="w-full py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 flex items-center justify-center"
+            >
+              Other UPI Apps
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// Updated Cart Component
+const Cart: React.FC<CartProps> = ({
+  cartItems,
+  updateQuantity,
+  removeFromCart,
+  onClose,
+  totalAmount,
+}) => {
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+
+  const handlePaymentSuccess = () => {
+    setShowPaymentModal(false);
+    onClose();
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center text-black">
+      <div className="bg-white p-6 rounded-lg max-w-md w-full max-h-[80vh] overflow-y-auto">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-bold">Your Cart</h2>
+          <button onClick={onClose} className="p-2">
+            <X className="h-6 w-6" />
+          </button>
+        </div>
+
+        {cartItems.length === 0 ? (
+          <p className="text-center text-gray-500">Your cart is empty</p>
+        ) : (
+          <>
+            {cartItems.map((item) => (
+              <div
+                key={item.id}
+                className="flex items-center justify-between py-4 border-b"
+              >
+                <div>
+                  <h3 className="font-medium">{item.name}</h3>
+                  <p className="text-gray-600">₹{item.price}/kg</p>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() =>
+                      updateQuantity(item.id, Math.max(0, item.quantity - 1))
+                    }
+                    className="p-1 rounded-full hover:bg-gray-100"
+                  >
+                    <Minus className="h-4 w-4" />
+                  </button>
+                  <span>{item.quantity}kg</span>
+                  <button
+                    onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                    className="p-1 rounded-full hover:bg-gray-100"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </button>
+                  <button
+                    onClick={() => removeFromCart(item.id)}
+                    className="ml-2 text-red-600"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+            ))}
+
+            <div className="mt-4 border-t pt-4">
+              <div className="flex justify-between font-bold mb-4">
+                <span>Total:</span>
+                <span>₹{totalAmount.toFixed(2)}</span>
+              </div>
+
+              <button
+                onClick={() => setShowPaymentModal(true)}
+                className="w-full py-2 bg-red-700 text-white rounded-lg hover:bg-red-800"
+              >
+                Proceed to Payment
+              </button>
+            </div>
+          </>
+        )}
+      </div>
+
+      {showPaymentModal && (
+        <PaymentModal
+          amount={totalAmount}
+          onClose={() => setShowPaymentModal(false)}
+          onSuccess={handlePaymentSuccess}
+        />
+      )}
+    </div>
+  );
+};
+
+const Navbar = ({
+  cartItems,
+  onCartClick,
+}: {
+  cartItems: CartItem[];
+  onCartClick: () => void;
+}) => (
   <nav className="sticky top-0 z-50 bg-white shadow-md">
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div className="flex justify-between items-center h-16">
@@ -56,8 +334,8 @@ const Navbar = () => (
             </span>
           </div>
         </div>
-        <div className="hidden md:block">
-          <div className="ml-10 flex items-baseline space-x-4">
+        <div className="flex items-center space-x-4">
+          <div className="hidden md:flex items-baseline space-x-4">
             <a
               href="#about"
               className="text-gray-700 hover:text-red-700 px-3 py-2 rounded-md text-sm font-medium"
@@ -77,6 +355,17 @@ const Navbar = () => (
               Contact
             </a>
           </div>
+          <button
+            onClick={onCartClick}
+            className="relative p-2 text-gray-700 hover:text-red-700"
+          >
+            <ShoppingCart className="h-6 w-6" />
+            {cartItems.length > 0 && (
+              <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                {cartItems.reduce((sum, item) => sum + item.quantity, 0)}
+              </span>
+            )}
+          </button>
         </div>
       </div>
     </div>
@@ -119,44 +408,85 @@ const Hero = () => (
   </section>
 );
 
-const Products = () => (
-  <section id="products" className="py-20 bg-white">
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <h2 className="text-3xl font-extrabold tracking-tight text-gray-900 text-center mb-12">
-        Our Premium Products
-      </h2>
-      <div className="grid grid-cols-1 gap-y-10 gap-x-6 sm:grid-cols-2 lg:grid-cols-3 xl:gap-x-8">
-        {products.map((product) => (
-          <div key={product.id} className="group relative">
-            <div className="relative w-full h-80 bg-gray-200 rounded-md overflow-hidden group-hover:opacity-75">
-              <Image
-                src={product.imagePath}
-                alt={product.name}
-                fill
-                className="object-cover object-center"
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                priority={product.id === 1}
-              />
-            </div>
-            <div className="mt-4 flex justify-between">
-              <div>
-                <h3 className="text-sm text-gray-700">
-                  <a href="#">
-                    <span aria-hidden="true" className="absolute inset-0" />
-                    {product.name}
-                  </a>
-                </h3>
+const Products = ({
+  addToCart,
+  cartItems,
+  updateQuantity,
+}: {
+  addToCart: (product: Product) => void;
+  cartItems: CartItem[];
+  updateQuantity: (productId: string, quantity: number) => void;
+}) => {
+  const getItemQuantity = (productId: number): number => {
+    const item = cartItems.find((item) => item.id === String(productId));
+    return item?.quantity || 0;
+  };
+
+  return (
+    <section id="products" className="py-20 bg-white">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 className="text-3xl font-extrabold tracking-tight text-gray-900 text-center mb-12">
+          Our Premium Products
+        </h2>
+        <div className="grid grid-cols-1 gap-y-10 gap-x-6 sm:grid-cols-2 lg:grid-cols-3 xl:gap-x-8">
+          {products.map((product) => {
+            const quantity = getItemQuantity(product.id);
+            return (
+              <div key={product.id} className="group relative">
+                <div className="relative w-full h-80 bg-gray-200 rounded-md overflow-hidden group-hover:opacity-75">
+                  <Image
+                    src={product.imagePath}
+                    alt={product.name}
+                    fill
+                    className="object-cover object-center"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    priority={product.id === 1}
+                  />
+                </div>
+                <div className="mt-4 space-y-2">
+                  <div className="flex justify-between">
+                    <h3 className="text-sm text-gray-700">{product.name}</h3>
+                    <p className="text-sm font-medium text-gray-900">
+                      ₹{product.price}/kg
+                    </p>
+                  </div>
+                  {quantity === 0 ? (
+                    <button
+                      onClick={() => addToCart(product)}
+                      className="w-full py-2 bg-red-700 text-white rounded-md hover:bg-red-800 transition-colors duration-200"
+                    >
+                      Add to Cart
+                    </button>
+                  ) : (
+                    <div className="flex items-center justify-between bg-red-700 text-white rounded-md px-2">
+                      <button
+                        onClick={() =>
+                          updateQuantity(String(product.id), quantity - 1)
+                        }
+                        className="p-2 hover:bg-red-800 rounded-l"
+                      >
+                        <Minus className="h-4 w-4" />
+                      </button>
+                      <span className="px-4">{quantity}</span>
+                      <button
+                        onClick={() =>
+                          updateQuantity(String(product.id), quantity + 1)
+                        }
+                        className="p-2 hover:bg-red-800 rounded-r"
+                      >
+                        <Plus className="h-4 w-4" />
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
-              <p className="text-sm font-medium text-gray-900">
-                ₹{product.price}/kg
-              </p>
-            </div>
-          </div>
-        ))}
+            );
+          })}
+        </div>
       </div>
-    </div>
-  </section>
-);
+    </section>
+  );
+};
 
 const Contact = () => {
   const handleWhatsAppClick = (number: string, isBusinessAccount: boolean) => {
@@ -259,15 +589,81 @@ const Footer = () => (
   </footer>
 );
 
-const HomePage = () => {
+const HomePage: React.FC = () => {
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [isCartOpen, setIsCartOpen] = useState(false);
+
+  const addToCart = (product: Product) => {
+    setCartItems((prevItems) => {
+      const existingItem = prevItems.find(
+        (item) => item.id === String(product.id)
+      );
+      if (existingItem) {
+        return prevItems.map((item) =>
+          item.id === String(product.id)
+            ? { ...item, quantity: item.quantity + 1 }
+            : item
+        );
+      }
+      return [
+        ...prevItems,
+        {
+          id: String(product.id),
+          name: product.name,
+          price: parseFloat(product.price),
+          quantity: 1,
+        },
+      ];
+    });
+  };
+
+  const updateQuantity = (productId: string, newQuantity: number) => {
+    if (newQuantity === 0) {
+      removeFromCart(productId);
+      return;
+    }
+    setCartItems((prevItems) =>
+      prevItems.map((item) =>
+        item.id === productId ? { ...item, quantity: newQuantity } : item
+      )
+    );
+  };
+
+  const removeFromCart = (productId: string) => {
+    setCartItems((prevItems) =>
+      prevItems.filter((item) => item.id !== productId)
+    );
+  };
+
+  const totalAmount = cartItems.reduce(
+    (sum, item) => sum + item.price * item.quantity,
+    0
+  );
+
   return (
     <div className="min-h-screen bg-white">
-      <Navbar />
+      <Navbar cartItems={cartItems} onCartClick={() => setIsCartOpen(true)} />
+
       <main>
         <Hero />
-        <Products />
+        <Products
+          addToCart={addToCart}
+          cartItems={cartItems}
+          updateQuantity={updateQuantity}
+        />
         <Contact />
       </main>
+
+      {isCartOpen && (
+        <Cart
+          cartItems={cartItems}
+          updateQuantity={updateQuantity}
+          removeFromCart={removeFromCart}
+          onClose={() => setIsCartOpen(false)}
+          totalAmount={totalAmount}
+        />
+      )}
+
       <Footer />
     </div>
   );
