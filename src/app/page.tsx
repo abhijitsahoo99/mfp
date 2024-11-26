@@ -9,10 +9,7 @@ import {
   X,
   Plus,
   Minus,
-  Smartphone,
-  Monitor,
 } from "lucide-react";
-import QRCode from "qrcode";
 
 // Types
 interface Product {
@@ -49,40 +46,54 @@ interface Contact {
   label: string;
 }
 
-// Constants
-const UPI_ID = "8763350504@ybl";
-const MERCHANT_NAME = "Madhav UPADHYAY";
-
 const products: Product[] = [
   {
     id: 1,
-    name: "Moong Dal",
-    price: "10",
-    imagePath: "/assets/dal.jpeg",
+    name: "Biri Dal",
+    price: "115",
+    imagePath: "/assets/biri-dal.svg",
   },
   {
     id: 2,
-    name: "Toor Dal",
-    price: "110",
-    imagePath: "/assets/dal.jpeg",
+    name: "Gram Dal",
+    price: "85",
+    imagePath: "/assets/gram-dal.svg",
   },
   {
     id: 3,
-    name: "Masoor Dal",
-    price: "95",
-    imagePath: "/assets/dal.jpeg",
+    name: "Kabuli Chana",
+    price: "147",
+    imagePath: "/assets/kabuli-chana.svg",
   },
   {
     id: 4,
-    name: "Biri Dal",
-    price: "85",
-    imagePath: "/assets/dal.jpeg",
+    name: "Masoor Dal",
+    price: "77",
+    imagePath: "/assets/masoor-dal.svg",
   },
   {
     id: 5,
-    name: "Gram Dal",
-    price: "90",
-    imagePath: "/assets/dal.jpeg",
+    name: "Toor Dal",
+    price: "85",
+    imagePath: "/assets/toor-dal.svg",
+  },
+  {
+    id: 6,
+    name: "Moong Dal",
+    price: "110",
+    imagePath: "/assets/moong-dal.svg",
+  },
+  {
+    id: 7,
+    name: "Matar",
+    price: "55",
+    imagePath: "/assets/white-peas.svg",
+  },
+  {
+    id: 8,
+    name: "Mustard Seed",
+    price: "67",
+    imagePath: "/assets/mustard-seeds.svg",
   },
 ];
 
@@ -95,133 +106,35 @@ const contacts: Contact[] = [
   },
 ];
 
-// Helper functions
-const isMobileDevice = (): boolean => {
-  if (typeof window === "undefined") return false;
-  return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-};
-
-const generateUPIUrl = (
-  amount: number,
-  type: "phonepe" | "gpay" | "default"
+// Add this helper function at the top with other helper functions
+const formatCartForWhatsApp = (
+  items: CartItem[],
+  customerName: string
 ): string => {
-  const encodedName = encodeURIComponent(MERCHANT_NAME);
-  const amountStr = amount.toFixed(2);
+  const itemsList = items
+    .map(
+      (item) =>
+        `- ${item.name}: ${item.quantity}kg @ ₹${item.price}/kg = ₹${
+          item.price * item.quantity
+        }`
+    )
+    .join("\n");
 
-  const urls = {
-    phonepe: `phonepe://pay?pa=${UPI_ID}&pn=${encodedName}&am=${amountStr}&cu=INR&mc=5411`,
-    gpay: `tez://upi/pay?pa=${UPI_ID}&pn=${encodedName}&am=${amountStr}&cu=INR`,
-    default: `upi://pay?pa=${UPI_ID}&pn=${encodedName}&am=${amountStr}&cu=INR`,
-  };
+  const total = items.reduce(
+    (sum, item) => sum + item.price * item.quantity,
+    0
+  );
 
-  return urls[type];
-};
-
-// Payment Modal Component
-const PaymentModal: React.FC<PaymentModalProps> = ({ amount, onClose }) => {
-  const [qrCodeUrl, setQrCodeUrl] = useState<string>("");
-  const isDesktop = !isMobileDevice();
-
-  useEffect(() => {
-    if (isDesktop) {
-      const upiUrl = generateUPIUrl(amount, "default");
-      QRCode.toDataURL(upiUrl)
-        .then((url) => setQrCodeUrl(url))
-        .catch(() => {
-          console.error("Failed to generate QR code");
-        });
-    }
-  }, [amount, isDesktop]);
-
-  const handlePayment = async (type: "phonepe" | "gpay" | "default") => {
-    try {
-      const paymentUrl = generateUPIUrl(amount, type);
-      window.location.href = paymentUrl;
-
-      setTimeout(() => {
-        if (type !== "default") {
-          const defaultUrl = generateUPIUrl(amount, "default");
-          window.location.href = defaultUrl;
-        }
-      }, 1500);
-    } catch (err) {
-      console.error("Failed to initiate payment. Please try again.");
-    }
-  };
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-[60] flex justify-center items-center">
-      <div className="bg-white p-6 rounded-lg max-w-md w-full">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold">Payment</h2>
-          <button onClick={onClose} className="p-2">
-            <X className="h-6 w-6" />
-          </button>
-        </div>
-
-        <div className="text-center mb-4">
-          <p className="text-2xl font-bold">₹{amount.toFixed(2)}</p>
-          <p className="text-gray-600">Total Amount</p>
-        </div>
-
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-          console.error("Failed to initiate payment. Please try again.");
-        </div>
-
-        {isDesktop ? (
-          <div className="text-center">
-            <div className="flex items-center justify-center mb-4">
-              <Monitor className="h-6 w-6 mr-2" />
-              <span>Scan with your UPI app</span>
-            </div>
-            {qrCodeUrl && (
-              <div className="mb-4">
-                <Image
-                  src={qrCodeUrl}
-                  alt="Payment QR Code"
-                  width={200}
-                  height={200}
-                  className="mx-auto"
-                />
-              </div>
-            )}
-            <div className="text-sm text-gray-600">
-              <p>UPI ID: {UPI_ID}</p>
-              <p>Scan the QR code or use the UPI ID in your payment app</p>
-            </div>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            <div className="flex items-center justify-center mb-2">
-              <Smartphone className="h-6 w-6 mr-2" />
-              <span>Pay using your preferred app</span>
-            </div>
-            <button
-              onClick={() => handlePayment("phonepe")}
-              className="w-full py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center justify-center"
-            >
-              Pay with PhonePe
-            </button>
-            <button
-              onClick={() => handlePayment("gpay")}
-              className="w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center justify-center"
-            >
-              Pay with Google Pay
-            </button>
-            <button
-              onClick={() => handlePayment("default")}
-              className="w-full py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 flex items-center justify-center"
-            >
-              Other UPI Apps
-            </button>
-          </div>
-        )}
-      </div>
-    </div>
+  return encodeURIComponent(
+    `*New Order For Madhav Food Products*\n\n` +
+      `*Customer Name: ${customerName}*\n\n` +
+      `*Order Details:*\n${itemsList}\n\n` +
+      `*Total Amount: ₹${total.toFixed(2)}*\n\n` +
+      `Please confirm my order.`
   );
 };
 
-// Updated Cart Component
+// Replace the existing Cart component with this simplified version
 const Cart: React.FC<CartProps> = ({
   cartItems,
   updateQuantity,
@@ -229,12 +142,18 @@ const Cart: React.FC<CartProps> = ({
   onClose,
   totalAmount,
 }) => {
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [customerName, setCustomerName] = useState("");
+  const [showNameError, setShowNameError] = useState(false);
 
-  // const handlePaymentSuccess = () => {
-  //   setShowPaymentModal(false);
-  //   onClose();
-  // };
+  const handleWhatsAppOrder = () => {
+    if (!customerName.trim()) {
+      setShowNameError(true);
+      return;
+    }
+    const message = formatCartForWhatsApp(cartItems, customerName);
+    const whatsappURL = `https://wa.me/917978692145?text=${message}`; // Update with your number
+    window.open(whatsappURL, "_blank");
+  };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center text-black">
@@ -290,28 +209,51 @@ const Cart: React.FC<CartProps> = ({
                 <span>Total:</span>
                 <span>₹{totalAmount.toFixed(2)}</span>
               </div>
+              <div className="mb-4">
+                <label
+                  htmlFor="customerName"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Your Name *
+                </label>
+                <input
+                  type="text"
+                  id="customerName"
+                  value={customerName}
+                  onChange={(e) => {
+                    setCustomerName(e.target.value);
+                    setShowNameError(false);
+                  }}
+                  className={`w-full p-2 border rounded-md ${
+                    showNameError ? "border-red-500" : "border-gray-300"
+                  }`}
+                  placeholder="Enter your name"
+                />
+                {showNameError && (
+                  <p className="text-red-500 text-sm mt-1">
+                    Please enter your name
+                  </p>
+                )}
+              </div>
 
               <button
-                onClick={() => setShowPaymentModal(true)}
-                className="w-full py-2 bg-red-700 text-white rounded-lg hover:bg-red-800"
+                onClick={handleWhatsAppOrder}
+                className="w-full py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center justify-center space-x-2"
               >
-                Proceed to Payment
+                <MessageCircle className="h-5 w-5" />
+                <span>Order via WhatsApp</span>
               </button>
+
+              <p className="text-sm text-gray-500 text-center mt-2">
+                Click to send your order details on WhatsApp
+              </p>
             </div>
           </>
         )}
       </div>
-
-      {showPaymentModal && (
-        <PaymentModal
-          amount={totalAmount}
-          onClose={() => setShowPaymentModal(false)}
-        />
-      )}
     </div>
   );
 };
-
 const Navbar = ({
   cartItems,
   onCartClick,
@@ -574,15 +516,25 @@ const Contact = () => {
   );
 };
 
-const Footer = () => (
-  <footer className="bg-red-700">
-    <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-      <p className="text-center text-white">
-        © {new Date().getFullYear()} Madhav Food Products. All rights reserved.
-      </p>
-    </div>
-  </footer>
-);
+const Footer = () => {
+  // Move the date calculation into the component body
+  const [year, setYear] = useState("2024"); // Default value
+
+  useEffect(() => {
+    // Update the year on the client side
+    setYear(new Date().getFullYear().toString());
+  }, []);
+
+  return (
+    <footer className="bg-red-700">
+      <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+        <p className="text-center text-white">
+          © {year} Madhav Food Products. All rights reserved.
+        </p>
+      </div>
+    </footer>
+  );
+};
 
 const HomePage: React.FC = () => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
