@@ -34,11 +34,6 @@ interface CartProps {
   totalAmount: number;
 }
 
-interface PaymentModalProps {
-  amount: number;
-  onClose: () => void;
-}
-
 interface Contact {
   id: number;
   number: string;
