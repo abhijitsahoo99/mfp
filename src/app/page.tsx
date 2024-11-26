@@ -177,7 +177,7 @@ const Contact = () => {
         <div className="text-center">
           <h2 className="text-3xl font-extrabold text-gray-900">Contact Us</h2>
           <p className="mt-4 text-lg leading-6 text-gray-500">
-            For any queries or orders, feel free to contact us.
+            For any queries feel free to contact/whatsapp us to place orders.
           </p>
         </div>
         <div className="mt-12 flex flex-col items-center justify-center space-y-6">
@@ -214,10 +214,32 @@ const Contact = () => {
                   <MessageCircle className="h-5 w-5 mr-2" />
                   <span>Chat on WhatsApp</span>
                 </button>
+                <button className="flex items-center justify-center px-4 py-2 border-2 border-red-700 text-black rounded-md bg-red-50 transition-colors duration-200">
+                  <span>
+                    Address:{" "}
+                    <a
+                      href="https://www.google.com/maps/dir//20.4620621,85.8781491/@20.4621348,85.8783126,55m/data=!3m1!1e3!4m2!4m1!3e9?entry=ttu&g_ep=EgoyMDI0MTExOS4yIKXMDSoASAFQAw%3D%3D"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-500"
+                    >
+                      Dall mill lane, Tarachand Patna, Pithapur, Cuttack
+                    </a>
+                  </span>
+                </button>
               </div>
 
               <div className="mt-4 text-center text-sm text-gray-500">
-                <p>Timing: 9:00 AM - 10:00 PM IST</p>
+                {/* <p>
+                  Address:{" "}
+                  <a
+                    href="https://www.google.com/maps/dir//20.4621786,85.8781702/@20.4620707,85.8370217,13395m/data=!3m2!1e3!4b1!4m2!4m1!3e9?entry=ttu&g_ep=EgoyMDI0MTExOS4yIKXMDSoASAFQAw%3D%3D"
+                    className="text-blue-500"
+                  >
+                    Dall mill lane, Tarachand Patna, Pithapur, Cuttack
+                  </a>
+                </p> */}
+                <p>Timing: 10:00 AM - 8:00 PM IST</p>
               </div>
             </div>
           ))}
