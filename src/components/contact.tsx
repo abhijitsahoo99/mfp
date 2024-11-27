@@ -29,7 +29,8 @@ export const ContactTo = () => {
         <div className="text-center">
           <h2 className="text-3xl font-extrabold text-gray-900">Contact Us</h2>
           <p className="mt-4 text-lg leading-6 text-gray-500">
-            For any queries feel free to contact/whatsapp us to place orders.
+            For orders and inquiries, contact or WhatsApp us for
+            delivery/takeaway
           </p>
         </div>
         <div className="mt-12 flex flex-col items-center justify-center space-y-6">
