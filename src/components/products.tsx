@@ -93,7 +93,7 @@ export const Products = ({
             const quantity = getItemQuantity(product.id);
             return (
               <div key={product.id} className="group relative">
-                <div className="relative w-full h-80 bg-gray-200 rounded-md overflow-hidden group-hover:opacity-75">
+                <div className="relative w-full h-80 bg-gray-200 rounded-md overflow-hidden">
                   <Image
                     src={product.imagePath}
                     alt={product.name}

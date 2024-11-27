@@ -21,7 +21,7 @@ const formatCartForWhatsApp = (
     .join("\n");
 
   const total = items.reduce(
-    (sum, item) => sum + item.price * item.quantity,
+    (sum, item) => sum + item.price * item.quantity + getDeliveryCharge(),
     0
   );
   // Only include customer details if provided
@@ -43,7 +43,7 @@ const formatCartForWhatsApp = (
       customerDetails +
       addressDetails +
       `*Order Details:*\n${itemsList}\n\n` +
-      `*Total Amount: ₹${total.toFixed(2)}*\n\n` +
+      `*Final Total: ₹${total.toFixed(2)}*\n\n` +
       `Please confirm my order.`
   );
 };
