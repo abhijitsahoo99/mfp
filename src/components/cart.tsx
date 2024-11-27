@@ -1,7 +1,7 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { MessageCircle, X, Plus, Minus } from "lucide-react";
-import { Contact, CartItem, CartProps, Product } from "@/types/queries";
+import { CartItem, CartProps } from "@/types/queries";
 
 const formatCartForWhatsApp = (
   items: CartItem[],
